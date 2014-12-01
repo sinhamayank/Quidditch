@@ -1,0 +1,94 @@
+<body class="match_background" background="/assets/match_background.jpeg">
+	<a href="/games/home" title="Back to Home"><img class="back_to_home" src="/assets/back.png"></a>
+	<div id="match_result">
+	</div>	
+	<%= form_tag update_statistics_path , :id => "update_stats_form", :method => :patch, :remote => true  do %>
+		<div>
+			<h1>Team Gryffindor</h1>
+			<% @gryffindor_players.each do |player| %>
+				<p><%= player.name %></p>
+				<%= hidden_field_tag("player_" + player.name, 0) %> 
+			<% end %>
+			<p id="team_0_score"><b>Score: 0</b></p>
+			<h1>Team Hufflepuff</h1>
+			<% @hufflepuff_players.each do |player| %>
+				<p><%= player.name %></p>
+				<%= hidden_field_tag("player_" + player.name, 0) %>
+			<% end %>
+			<p id="team_1_score"><b>Score: 0</b></p>
+		</div>
+		<div id="match_stats">
+			<h1>Match Stats</h1>
+		</div>
+		<%= hidden_field_tag("winner", "nil") %>
+	<% end %>
+</body>
+<script>
+    var count = 0; // will store the time elapsed in seconds
+    score_array = [0,0]; // will contain gryffindor's score at 0th index and hufflepuff's score at 1st index
+    players_name_array = [];  // will contain names of all the gryffindor's players from 0th to 3rd position and all hufflepuff's players from 4th to 7th position
+	team_name_array = ["gryffindor","hufflepuff"];
+	<% @gryffindor_players.each do |player| %>
+		players_name_array.push("<%= player.name %>")
+	<% end %>
+	<% @hufflepuff_players.each do |player| %>
+		players_name_array.push("<%= player.name %>")
+	<% end %>
+	$(document).ready(function(){
+		chance_to_score_var = setInterval(function(){
+				chance_to_score(); // there is a chance to score for one team after every 5 seconds
+			},5000);
+	});
+	function chance_to_score(){  // this function decides which team has a chance to score and if it scored
+		count = count + 5;  // updating the elapsed time value
+		which_team = Math.floor(Math.random()*2); //will decide which team has a chance to score
+		which_player = Math.floor(Math.random()*4); //will decide which player has a chance for goal or if it's a fetching golden ball chance
+		if (which_player == 0) //chance for the golden ball (the first player from both the teams are for fetching the golden ball only and they aren't allowed to score a goal)
+		{
+			if (count > 120 && score_array[which_team] > 80)  //only team with score more than 80 can fetch a golden ball and not before two minutes
+			{
+				if ( (score_array[which_team] >= 120 && Math.random() < 0.5) || (score_array[which_team] < 120 && Math.random() < 0.005) )  //golden ball fetched. If the first condition (before ||) is true, the team wins, but if the second condition is true i.e. the team couldn't reach a score of 200 and it fetched the golden ball, it loses
+				{
+					window.clearInterval(chance_to_score_var); // the match always ends with fetching of the golden ball
+					score_array[which_team] = score_array[which_team] + 80;  // updating the team's score
+					$("#team_" + which_team + "_score").html("<b>Score: " + score_array[which_team] + "</b>"); //updating the team's score display
+					team_which_scored = team_name_array[which_team]; //name of the team which scored
+					player_which_scored = players_name_array[which_player + (which_team * 4)];	//name of the player who scored
+					score = parseInt($("#player_" + player_which_scored).attr("value")) + 80;  //scoring player's total match score
+					$("#player_" + player_which_scored).attr("value", score);	//updating the scoring player's total match score
+					$("#match_stats").append("<p>Team " + team_which_scored + ", player " + player_which_scored + " fetched the golden ball at " + count + " seconds.</p>");  // adding to the match's stats.
+					if (score_array[which_team] >= 200)  //checking whether the team reached the score of 200 after fetching the golden ball, if not, it loses
+					{
+						$("#match_result").html("<b> Match Result </b> <p> Team " + team_name_array[which_team] + " wins the match! </p>"); // showing the final match result
+						$("#winner").attr("value",which_team);  // setting the winner team value
+					}
+					else
+					{
+						$("#match_result").html("<b> Match Result </b> <p> Team " + team_name_array[Math.abs(which_team - 1)] + " wins since the other team fetched the golden ball and their score didn't reach 200. </p>"); //showing the final match result
+						$("#winner").attr("value",Math.abs(which_team - 1));  // setting the winner team value
+					}
+					$("#update_stats_form").submit(); // sending request to server side to update the stats
+				}
+			}
+		}
+		else
+		{	
+			if (score_array[which_team] < 190)  // a team can't score a goal if it has reached a score of 190, it can end the game now only by fetching the golden ball
+			{
+				team_which_scored = team_name_array[which_team]; //name of the team which scored
+				player_which_scored = players_name_array[which_player + (which_team * 4)]; // name of the player which scored
+				score = parseInt($("#player_" + player_which_scored).attr("value")) + 10;
+				$("#player_" + player_which_scored).attr("value", score);	//updating total match score of the scoring player
+				$("#match_stats").append("<p>Team " + team_which_scored + ", player " + player_which_scored + " scored at " + count + " seconds.</p>");  //adding to the match stats
+				score_array[which_team] = score_array[which_team] + 10;  // updating the team's score
+			}
+		}
+		$("#team_" + which_team + "_score").html("<b>Score: " + score_array[which_team] + "</b>");  // updating the team's score display
+		if (count == 300 && $("#winner").attr("value") == "nil")  // the time is already 5 minutes and so the game should end.
+		{
+			window.clearInterval(chance_to_score_var); // since the game ends at 5 minutes, no matter what, so clearing the call to chance_to_score function
+			$("#update_stats_form").submit(); // sending request to server side to update the stats
+			$("#match_result").html("<b> Match Result </b> <p> Match is a draw since it's already 5 minutes and no team can reach a score of 200. </p>"); //showing the final match result
+		}
+	}
+</script>

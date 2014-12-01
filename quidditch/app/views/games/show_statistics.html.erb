@@ -1,0 +1,12 @@
+<body class="stats_background" background="/assets/stats_background.jpg">
+	<a href="/games/home" title="Back to Home"><img class="back_to_home" src="/assets/back_button.png"></a>
+	<h1>Matches Won</h1>
+	<% @teams.each do |team| %>
+		<h2><%= team.name %>: &nbsp;<%= team.total_wins %></h2>
+	<% end %>
+	<br/>
+	<h1>Players and their Lifetime Scores</h1>
+	<% @players.each do |player| %>
+		<h3><%= player.name %>: &nbsp;<%= player.total_lifetime_score %></h3>
+	<% end %>
+</body>

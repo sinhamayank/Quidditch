@@ -1,0 +1,35 @@
+// Place all the styles related to the Games controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+.home_background {
+    background-size: cover 
+}
+.match_back {
+    background-size: cover 
+}
+.start_button {
+    position: absolute;
+    height: 200px;
+    width: 200px;    
+    top: 27%;
+    left: 75%;
+    transform: translate(-50%, -50%)
+}
+.show_stats {
+    position: absolute;
+    height: 200px;
+    width: 200px;    
+    top: 80%;
+    left: 75%;
+    transform: translate(-50%, -50%)
+}
+.stats_background {
+    background-size: cover 
+}
+.back_to_home {
+    position: absolute;
+    height: 100px;
+    width: 100px;    
+    left: 75%;
+    transform: translate(0, -10%)
+}
